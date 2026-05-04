@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>HemoChi</title>
+  <style>
+    :root {
+      --bg-top: #ffe4ef;
+      --bg-mid: #fff0f7;
+      --bg-bottom: #fffafc;
+      --pink-main: #ff81aa;
+      --pink-strong: #ff5d91;
+      --pink-soft: #ffc2d8;
+      --pink-pale: #ffe6f0;
+      --cream: #fff7ef;
+      --red-main: #ff6e76;
+      --red-dark: #ca445d;
+      --mint: #b7f0df;
+      --lilac: #eddcff;
+      --text-main: #7c4660;
+      --text-soft: #b06f8c;
+      --white: #ffffff;
+      --shadow: 0 18px 38px rgba(255, 129, 170, 0.18);
+      --border: rgba(255, 255, 255, 0.75);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 55%, var(--bg-bottom) 100%);
+      color: var(--text-main);
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app-shell {
+      position: relative;
+      min-height: 100vh;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)) 16px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .app-shell::before,
+    .app-shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(10px);
+      z-index: -2;
+      opacity: 0.8;
+      animation: driftBlob 12s ease-in-out infinite;
+    }
+
+    .app-shell::before {
+      width: 240px;
+      height: 240px;
+      top: -70px;
+      left: -100px;
+      background: radial-gradient(circle, rgba(255, 196, 221, 0.95), rgba(255, 196, 221, 0) 72%);
+    }
+
+    .app-shell::after {
+      width: 250px;
+      height: 250px;
+      right: -120px;
+      bottom: 120px;
+      background: radial-gradient(circle, rgba(255, 234, 196, 0.82), rgba(255, 234, 196, 0) 70%);
+      animation-delay: -4s;
+    }
+
+    .floating-decor,
+    .sparkles span {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .sparkles span {
+      font-size: 1.3rem;
+      opacity: 0.7;
+      animation: floatSparkle 10s linear infinite;
+    }
+
+    .sparkles span:nth-child(1) { top: 10%; left: 10%; animation-delay: -1s; }
+    .sparkles span:nth-child(2) { top: 24%; right: 14%; animation-delay: -4s; }
+    .sparkles span:nth-child(3) { bottom: 26%; left: 16%; animation-delay: -6s; }
+    .sparkles span:nth-child(4) { bottom: 16%; right: 18%; animation-delay: -8s; }
+
+    .floating-decor {
+      padding: 0.55rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.68);
+      box-shadow: 0 10px 26px rgba(255, 144, 177, 0.16);
+      backdrop-filter: blur(8px);
+      font-size: 1.15rem;
+      animation: floatItem 7s ease-in-out infinite;
+    }
+
+    .floating-syringe { top: 13%; right: 7%; transform: rotate(-8deg); }
+    .floating-heart { top: 34%; left: 6%; animation-delay: -2s; }
+
+    .phone-frame {
+      width: min(100%, 430px);
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 34px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.25), 0 24px 60px rgba(223, 130, 162, 0.16);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 18px 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .brand-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #ffc3d9, #fff1f7);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      font-size: 1.35rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .brand p {
+      margin: 0.2rem 0 0;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .bubble-button,
+    .tab-button,
+    .primary-button,
+    .close-button,
+    .plus-button,
+    .game-button {
+      border: 0;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+    }
+
+    .bubble-button,
+    .close-button,
+    .game-button,
+    .plus-button {
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text-main);
+      box-shadow: 0 12px 24px rgba(255, 132, 174, 0.14);
+    }
+
+    .bubble-button {
+      padding: 0.85rem 1rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      max-width: 160px;
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.55rem;
+      padding: 0 18px 14px;
+    }
+
+    .tab-button {
+      padding: 0.9rem 0.5rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--text-soft);
+      font-weight: 800;
+      font-size: 0.86rem;
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, #ffb5cb, #ff85aa);
+      color: var(--white);
+      box-shadow: 0 14px 24px rgba(255, 105, 152, 0.25);
+    }
+
+    .content {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel {
+      display: none;
+      animation: panelIn 220ms ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .hero-card,
+    .info-card,
+    .game-card,
+    .donation-card,
+    .scanner-card,
+    .modal-card {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-card {
+      padding: 18px 16px 16px;
+      text-align: center;
+    }
+
+    .hero-card h2 {
+      margin: 0 0 0.4rem;
+      font-size: 1.15rem;
+    }
+
+    .hero-card p,
+    .info-card p,
+    .game-card p,
+    .donation-copy,
+    .scanner-card p,
+    .modal-card p {
+      margin: 0;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+
+    .hero-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .life-bar-card {
+      width: 100%;
+      padding: 0.85rem 0.95rem;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,247,251,0.95));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .life-bar-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.45rem;
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .life-track {
+      width: 100%;
+      height: 16px;
+      border-radius: 999px;
+      background: #ffe0ea;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(198, 101, 139, 0.15);
+    }
+
+    .life-fill {
+      width: 50%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff8fb1, #ff648e);
+      transition: width 700ms cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .pet-wrap {
+      position: relative;
+      width: min(70vw, 250px);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      margin-top: 4px;
+    }
+
+    .pet-shadow {
+      position: absolute;
+      bottom: 14px;
+      width: 64%;
+      height: 22px;
+      background: rgba(255, 113, 130, 0.16);
+      border-radius: 50%;
+      filter: blur(4px);
+      animation: shadowPulse 3s ease-in-out infinite;
+    }
+
+    .pet {
+      position: relative;
+      width: 80%;
+      aspect-ratio: 1 / 1;
+      animation: breathe 3s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .cat-head {
+      position: absolute;
+      inset: 12% 10% 10%;
+      border-radius: 50% 50% 42% 42%;
+      background: linear-gradient(180deg, #ff8d93 0%, #ff6e76 70%, #f9576a 100%);
+      box-shadow: inset 0 10px 18px rgba(255,255,255,0.32), 0 18px 30px rgba(235, 90, 116, 0.28);
+    }
+
+    .cat-ear {
+      position: absolute;
+      top: 2%;
+      width: 28%;
+      height: 30%;
+      background: linear-gradient(180deg, #ff848b, #ff616b);
+      border-radius: 12px 12px 4px 4px;
+    }
+
+    .cat-ear::after {
+      content: "";
+      position: absolute;
+      inset: 24% 22% 18%;
+      background: rgba(255, 219, 230, 0.9);
+      border-radius: 10px 10px 4px 4px;
+    }
+
+    .cat-ear.left {
+      left: 13%;
+      transform: rotate(-26deg);
+    }
+
+    .cat-ear.right {
+      right: 13%;
+      transform: rotate(26deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 26% 18% 18%;
+    }
+
+    .eye {
+      position: absolute;
+      top: 20%;
+      width: 18px;
+      height: 24px;
+      border-radius: 50%;
+      background: #673648;
+    }
+
+    .eye::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 6px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+    }
+
+    .eye-left { left: 18%; }
+    .eye-right { right: 18%; }
+
+    .blush {
+      position: absolute;
+      top: 46%;
+      width: 24px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 209, 221, 0.9);
+      filter: blur(1px);
+    }
+
+    .blush-left { left: 2%; }
+    .blush-right { right: 2%; }
+
+    .nose {
+      position: absolute;
+      top: 44%;
+      left: 50%;
+      width: 12px;
+      height: 10px;
+      transform: translateX(-50%);
+      background: #ffd3df;
+      border-radius: 50% 50% 60% 60%;
+    }
+
+    .mouth {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 32px;
+      height: 18px;
+      transform: translateX(-50%);
+    }
+
+    .mouth::before,
+    .mouth::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 16px;
+      height: 18px;
+      border-bottom: 3px solid #7d4258;
+      border-radius: 0 0 18px 18px;
+    }
+
+    .mouth::before {
+      left: 0;
+      transform: rotate(10deg);
+    }
+
+    .mouth::after {
+      right: 0;
+      transform: rotate(-10deg);
+    }
+
+    .whisker {
+      position: absolute;
+      top: 52%;
+      width: 36px;
+      height: 2px;
+      background: rgba(125, 66, 88, 0.55);
+      border-radius: 99px;
+    }
+
+    .whisker.left.top { left: -8%; transform: rotate(10deg); }
+    .whisker.left.bottom { left: -8%; top: 59%; transform: rotate(-10deg); }
+    .whisker.right.top { right: -8%; transform: rotate(-10deg); }
+    .whisker.right.bottom { right: -8%; top: 59%; transform: rotate(10deg); }
+
+    .pet.celebrate {
+      animation: bounceJoy 720ms cubic-bezier(0.25, 1.4, 0.5, 1) 3, breathe 3s ease-in-out infinite 2.16s;
+    }
+
+    .pet-name {
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      background: var(--pink-pale);
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+
+    .status-message {
+      min-height: 1.6rem;
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--pink-strong);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 260ms ease, transform 260ms ease;
+    }
+
+    .status-message.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-top: 12px;
+    }
+
+    .primary-button {
+      width: 100%;
+      padding: 1.05rem 1.2rem;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--pink-main), var(--pink-strong));
+      color: var(--white);
+      font-weight: 900;
+      font-size: 1.08rem;
+      box-shadow: 0 18px 35px rgba(255, 102, 150, 0.32);
+    }
+
+    .primary-button[disabled] {
+      cursor: wait;
+      opacity: 0.92;
+    }
+
+    .detected-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 18px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      background: linear-gradient(135deg, #fff7da, #fff0f8);
+      color: #9a5c47;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+      margin-top: 14px;
+    }
+
+    .stat-pill {
+      padding: 0.8rem 0.55rem;
+      border-radius: 20px;
+      text-align: center;
+      background: rgba(255, 248, 252, 0.9);
+    }
+
+    .stat-pill strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .stat-pill span {
+      font-size: 0.74rem;
+      color: var(--text-soft);
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-heading h3 {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+
+    .section-heading span {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+    }
+
+    .info-card {
+      padding: 16px;
+    }
+
+    .waiting-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .game-card {
+      padding: 16px;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .game-header h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .game-badge {
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--text-main);
+      background: var(--pink-pale);
+      white-space: nowrap;
+    }
+
+    .tap-game-area {
+      position: relative;
+      height: 180px;
+      margin: 12px 0;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.42), rgba(255,255,255,0) 30%),
+        linear-gradient(180deg, #ffe1ee, #fff7fb);
+    }
+
+    .tap-target {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 0;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #ffb7d0, #ff86af);
+      color: #fff;
+      box-shadow: 0 10px 18px rgba(255, 120, 161, 0.26);
+    }
+
+    .game-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 12px;
+    }
+
+    .game-button {
+      padding: 0.8rem 0.95rem;
+      border-radius: 18px;
+      font-weight: 800;
+    }
+
+    .breath-orb {
+      width: 108px;
+      height: 108px;
+      margin: 14px auto 10px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #ffc8dd 60%, #ff95ba 100%);
+      color: var(--text-main);
+      font-weight: 900;
+      box-shadow: inset 0 8px 18px rgba(255,255,255,0.6), 0 16px 28px rgba(255, 128, 168, 0.22);
+      animation: breathOrb 4s ease-in-out infinite;
+    }
+
+    .breath-text {
+      font-weight: 800;
+      color: var(--pink-strong);
+      text-align: center;
+      min-height: 1.4rem;
+      margin-top: 6px;
+    }
+
+    .donation-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .donation-card {
+      padding: 16px;
+    }
+
+    .donation-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+
+    .donation-title {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .donation-mini {
+      margin-top: 0.18rem;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .plus-button {
+      min-width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .donation-copy {
+      margin-top: 10px;
+    }
+
+    .donation-extra {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 240ms ease, margin-top 240ms ease;
+    }
+
+    .donation-card.expanded .donation-extra {
+      max-height: 160px;
+      margin-top: 10px;
+    }
+
+    .donation-card.highlight {
+      background: linear-gradient(180deg, rgba(255, 248, 218, 0.95), rgba(255, 255, 255, 0.94));
+      border-color: rgba(255, 226, 121, 0.75);
+    }
+
+    .detected-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 8px;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+      background: #fff1be;
+      color: #9e6b2e;
+      font-weight: 800;
+      font-size: 0.76rem;
+    }
+
+    .modal,
+    .scanner {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.1rem;
+      background: rgba(120, 67, 95, 0.35);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 220ms ease, visibility 220ms ease;
+      z-index: 30;
+    }
+
+    .modal.open,
+    .scanner.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card,
+    .scanner-card {
+      width: min(100%, 390px);
+      padding: 18px;
+    }
+
+    .modal-card h2,
+    .scanner-card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    .help-steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .help-step {
+      padding: 0.85rem 0.95rem;
+      border-radius: 20px;
+      background: rgba(255, 248, 252, 0.95);
+    }
+
+    .help-step strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.92rem;
+    }
+
+    .modal-actions,
+    .scanner-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+
+    .close-button {
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      font-weight: 800;
+    }
+
+    .camera-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffd8e7, #ffc3d8);
+      aspect-ratio: 3 / 4;
+      margin-top: 12px;
+    }
+
+    .camera-feed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #f8bfd2;
+    }
+
+    .camera-feed.hidden {
+      opacity: 0;
+    }
+
+    .camera-fallback {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 1.4rem;
+      color: #fffdfd;
+      font-weight: 800;
+      line-height: 1.5;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.28), rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, rgba(255, 152, 189, 0.18), rgba(255, 110, 157, 0.45));
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .camera-fallback.visible {
+      opacity: 1;
+    }
+
+    .scan-frame {
+      position: absolute;
+      inset: 14% 10%;
+      border: 4px solid rgba(255, 255, 255, 0.96);
+      border-radius: 28px;
+      box-shadow: 0 0 0 999px rgba(101, 47, 70, 0.16);
+      overflow: hidden;
+    }
+
+    .scan-frame::before {
+      content: "";
+      position: absolute;
+      left: 6%;
+      right: 6%;
+      top: 0;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0));
+      animation: scanLine 2s ease-in-out infinite;
+    }
+
+    .scan-corners span {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: #fff;
+      border-style: solid;
+    }
+
+    .scan-corners span:nth-child(1) { top: 12px; left: 12px; border-width: 4px 0 0 4px; border-radius: 12px 0 0 0; }
+    .scan-corners span:nth-child(2) { top: 12px; right: 12px; border-width: 4px 4px 0 0; border-radius: 0 12px 0 0; }
+    .scan-corners span:nth-child(3) { bottom: 12px; left: 12px; border-width: 0 0 4px 4px; border-radius: 0 0 0 12px; }
+    .scan-corners span:nth-child(4) { right: 12px; bottom: 12px; border-width: 0 4px 4px 0; border-radius: 0 0 12px 0; }
+
+    .scanner-status {
+      margin-top: 0.85rem;
+      min-height: 1.4rem;
+      color: var(--pink-strong);
+      font-weight: 800;
+    }
+
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      top: -10vh;
+      width: 12px;
+      height: 18px;
+      border-radius: 4px;
+      opacity: 0.95;
+      animation: confettiFall linear forwards;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    @keyframes breathOrb {
+      0%, 100% { transform: scale(0.9); }
+      50% { transform: scale(1.08); }
+    }
+
+    @keyframes shadowPulse {
+      0%, 100% { transform: scaleX(1); opacity: 0.18; }
+      50% { transform: scaleX(0.92); opacity: 0.24; }
+    }
+
+    @keyframes floatItem {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(-6deg); }
+      50% { transform: translate3d(-10px, 14px, 0) rotate(4deg); }
+    }
+
+    @keyframes driftBlob {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(18px, 20px, 0) scale(1.08); }
+    }
+
+    @keyframes floatSparkle {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-26px) rotate(20deg); opacity: 0.15; }
+    }
+
+    @keyframes scanLine {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(215px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      100% { transform: translate3d(var(--drift), 115vh, 0) rotate(720deg); }
+    }
+
+    @keyframes bounceJoy {
+      0%, 100% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-18px) scale(1.06); }
+      60% { transform: translateY(0) scale(0.98); }
+    }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 700px) {
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      .app-shell {
+        display: grid;
+        place-items: center;
+      }
+
+      .phone-frame {
+        min-height: 92vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <div class="sparkles" aria-hidden="true">
+      <span>✦</span>
+      <span>♡</span>
+      <span>✿</span>
+      <span>⋆</span>
+    </div>
+    <div class="floating-decor floating-syringe" aria-hidden="true">💉✨</div>
+    <div class="floating-decor floating-heart" aria-hidden="true">🩸🐾</div>
+
+    <div class="phone-frame">
+      <header class="top-bar">
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true">🐱</div>
+          <div>
+            <h1>HemoChi</h1>
+            <p>Le don de sang en version douce</p>
+          </div>
+        </div>
+        <button class="bubble-button" id="helpButton" type="button">❓ Le don de sang</button>
+      </header>
+
+      <nav class="tab-bar" aria-label="Menu HemoChi">
+        <button class="tab-button active" type="button" data-tab="compagnon">Compagnon</button>
+        <button class="tab-button" type="button" data-tab="jeux">Mini-jeux</button>
+        <button class="tab-button" type="button" data-tab="dons">Dons +</button>
+      </nav>
+
+      <div class="content">
+        <section class="panel active" id="panel-compagnon">
+          <article class="hero-card">
+            <div class="hero-stack">
+              <div class="life-bar-card">
+                <div class="life-bar-label">
+                  <span>Énergie de HemoChi</span>
+                  <span id="lifePercent">50%</span>
+                </div>
+                <div class="life-track" aria-label="Barre d'énergie">
+                  <div class="life-fill" id="lifeFill"></div>
+                </div>
+              </div>
+
+              <div class="pet-wrap" aria-label="Mascotte chat rouge">
+                <div class="pet-shadow" aria-hidden="true"></div>
+                <div class="pet" id="pet">
+                  <div class="cat-ear left" aria-hidden="true"></div>
+                  <div class="cat-ear right" aria-hidden="true"></div>
+                  <div class="cat-head">
+                    <div class="face" aria-hidden="true">
+                      <span class="eye eye-left"></span>
+                      <span class="eye eye-right"></span>
+                      <span class="blush blush-left"></span>
+                      <span class="blush blush-right"></span>
+                      <span class="nose"></span>
+                      <span class="mouth"></span>
+                      <span class="whisker left top"></span>
+                      <span class="whisker left bottom"></span>
+                      <span class="whisker right top"></span>
+                      <span class="whisker right bottom"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pet-name">Miaou-Chi la petite poche de courage</div>
+              <p class="status-message" id="statusMessage" role="status" aria-live="polite"></p>
+              <div class="detected-chip" id="detectedChip">Dernier don détecté : aucun pour l'instant</div>
+            </div>
+
+            <div class="hero-actions">
+              <button class="primary-button" id="scanButton" type="button">📷 Nourris-le</button>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-pill">
+                <strong id="saveCount">0</strong>
+                <span>vies câlinées</span>
+              </div>
+              <div class="stat-pill">
+                <strong id="scanCount">0</strong>
+                <span>QR scannés</span>
+              </div>
+              <div class="stat-pill">
+                <strong id="gamePoints">0</strong>
+                <span>points attente</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="info-card">
+            <div class="section-heading">
+              <h3>Pourquoi c'est rassurant</h3>
+              <span>version anti-stress</span>
+            </div>
+            <p>Le parcours est guidé pas à pas. Tu arrives, on vérifie que tout va bien, tu t'installes, tu donnes, puis tu prends une pause gourmande. HemoChi transforme ce moment en rituel doux et positif.</p>
+          </article>
+        </section>
+
+        <section class="panel" id="panel-jeux">
+          <div class="section-heading">
+            <h3>Mini-jeux de salle d'attente</h3>
+            <span>petits boosts +</span>
+          </div>
+
+          <div class="waiting-grid">
+            <article class="game-card">
+              <div class="game-header">
+                <div>
+                  <h4>Attrape les coeurs</h4>
+                  <p>Tape les coeurs pop avant qu'ils disparaissent.</p>
+                </div>
+                <div class="game-badge">+ énergie</div>
+              </div>
+              <div class="tap-game-area" id="tapGameArea"></div>
+              <div class="game-actions">
+                <span id="tapGameScore">Score : 0</span>
+                <button class="game-button" id="startTapGame" type="button">Lancer</button>
+              </div>
+            </article>
+
+            <article class="game-card">
+              <div class="game-header">
+                <div>
+                  <h4>Respire avec Miaou-Chi</h4>
+                  <p>Une mini pause guidée pour te relaxer avant le don.</p>
+                </div>
+                <div class="game-badge">+ calme</div>
+              </div>
+              <div class="breath-orb" id="breathOrb">Inspire</div>
+              <div class="breath-text" id="breathText">Prêt pour 3 respirations douces</div>
+              <div class="game-actions">
+                <span id="breathCount">Cycles : 0</span>
+                <button class="game-button" id="startBreathGame" type="button">Commencer</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-dons">
+          <div class="section-heading">
+            <h3>Types de dons reconnus</h3>
+            <span>infos +</span>
+          </div>
+
+          <div class="donation-list" id="donationList">
+            <article class="donation-card" data-type="Sang total">
+              <div class="donation-top">
+                <div>
+                  <h4 class="donation-title">Sang total</h4>
+                  <div class="donation-mini">Le plus classique, rapide et utile au quotidien.</div>
+                </div>
+                <button class="plus-button" type="button" aria-label="Afficher plus sur le sang total">+</button>
+              </div>
+              <p class="donation-copy">Le don de sang total permet de récupérer plusieurs composants utiles pour différents patients.</p>
+              <div class="donation-extra">
+                <p class="donation-copy">En général, le rendez-vous est simple et bien encadré. C'est souvent la première porte d'entrée pour découvrir le don.</p>
+              </div>
+            </article>
+
+            <article class="donation-card" data-type="Plasma">
+              <div class="donation-top">
+                <div>
+                  <h4 class="donation-title">Plasma</h4>
+                  <div class="donation-mini">Le liquide jaune pâle du sang, précieux pour de nombreux traitements.</div>
+                </div>
+                <button class="plus-button" type="button" aria-label="Afficher plus sur le plasma">+</button>
+              </div>
+              <p class="donation-copy">Le plasma sert notamment à fabriquer des médicaments et à aider des patients fragiles.</p>
+              <div class="donation-extra">
+                <p class="donation-copy">Le prélèvement est un peu plus long, mais toujours accompagné et expliqué par l'équipe du centre.</p>
+              </div>
+            </article>
+
+            <article class="donation-card" data-type="Plaquettes">
+              <div class="donation-top">
+                <div>
+                  <h4 class="donation-title">Plaquettes</h4>
+                  <div class="donation-mini">Elles aident à stopper les saignements et sont très demandées.</div>
+                </div>
+                <button class="plus-button" type="button" aria-label="Afficher plus sur les plaquettes">+</button>
+              </div>
+              <p class="donation-copy">Les plaquettes sont vitales pour certains patients, notamment en hématologie.</p>
+              <div class="donation-extra">
+                <p class="donation-copy">Comme elles se conservent peu de temps, chaque don compte vraiment et peut être utilisé très vite.</p>
+              </div>
+            </article>
+
+            <article class="donation-card" data-type="Globules rouges">
+              <div class="donation-top">
+                <div>
+                  <h4 class="donation-title">Globules rouges</h4>
+                  <div class="donation-mini">Ils transportent l'oxygène dans le corps et soutiennent beaucoup de soins.</div>
+                </div>
+                <button class="plus-button" type="button" aria-label="Afficher plus sur les globules rouges">+</button>
+              </div>
+              <p class="donation-copy">Ce type de don ciblé peut être proposé selon ton profil et les besoins du moment.</p>
+              <div class="donation-extra">
+                <p class="donation-copy">L'idée HemoChi: après le scan du QR code, on sait automatiquement quel type de don vient d'être réalisé.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <section class="modal" id="helpModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">Comment se passe un don de sang ?</h2>
+      <p>Le but de HemoChi est de rendre le parcours plus rassurant en expliquant chaque étape avec des mots simples.</p>
+      <div class="help-steps">
+        <div class="help-step">
+          <strong>1. Accueil et petit questionnaire</strong>
+          <span>On vérifie que tu peux donner aujourd'hui et on répond à tes questions.</span>
+        </div>
+        <div class="help-step">
+          <strong>2. Entretien et installation</strong>
+          <span>Un professionnel t'accompagne, t'explique le geste et t'installe confortablement.</span>
+        </div>
+        <div class="help-step">
+          <strong>3. Le prélèvement</strong>
+          <span>Le don dure seulement quelques minutes pour le sang total, un peu plus selon le type de don.</span>
+        </div>
+        <div class="help-step">
+          <strong>4. Pause et collation</strong>
+          <span>Après le don, tu te reposes, tu manges un petit quelque chose, et HemoChi peut être nourri via le QR code du centre.</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="close-button" id="closeHelpButton" type="button">Fermer</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="scanner" id="scannerModal" aria-hidden="true">
+    <div class="scanner-card" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
+      <h2 id="scannerTitle">Nourrir HemoChi</h2>
+      <p>Pointe le QR code du centre dans le cadre. Selon le code, HemoChi saura si c'est un don de plasma, plaquettes, sang total ou globules rouges.</p>
+      <div class="camera-wrap">
+        <video class="camera-feed" id="cameraFeed" autoplay playsinline muted></video>
+        <div class="camera-fallback" id="cameraFallback" aria-hidden="true">
+          <div>
+            <div style="font-size: 2rem; margin-bottom: 0.45rem;">🐱🩸✨</div>
+            <div>Mode démo activé.<br>Le QR code est simulé en douceur.</div>
+          </div>
+        </div>
+        <div class="scan-frame" aria-hidden="true">
+          <div class="scan-corners">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+      <p class="scanner-status" id="scannerStatus" role="status" aria-live="polite"></p>
+      <div class="scanner-actions">
+        <button class="close-button" id="closeScannerButton" type="button">Annuler</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+  <script>
+    const helpButton = document.getElementById("helpButton");
+    const helpModal = document.getElementById("helpModal");
+    const closeHelpButton = document.getElementById("closeHelpButton");
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const panels = document.querySelectorAll(".panel");
+    const scanButton = document.getElementById("scanButton");
+    const scannerModal = document.getElementById("scannerModal");
+    const closeScannerButton = document.getElementById("closeScannerButton");
+    const cameraFeed = document.getElementById("cameraFeed");
+    const cameraFallback = document.getElementById("cameraFallback");
+    const scannerStatus = document.getElementById("scannerStatus");
+    const lifeFill = document.getElementById("lifeFill");
+    const lifePercent = document.getElementById("lifePercent");
+    const pet = document.getElementById("pet");
+    const statusMessage = document.getElementById("statusMessage");
+    const confettiLayer = document.getElementById("confettiLayer");
+    const detectedChip = document.getElementById("detectedChip");
+    const saveCount = document.getElementById("saveCount");
+    const scanCount = document.getElementById("scanCount");
+    const gamePoints = document.getElementById("gamePoints");
+    const donationCards = document.querySelectorAll(".donation-card");
+    const startTapGame = document.getElementById("startTapGame");
+    const tapGameArea = document.getElementById("tapGameArea");
+    const tapGameScore = document.getElementById("tapGameScore");
+    const startBreathGame = document.getElementById("startBreathGame");
+    const breathOrb = document.getElementById("breathOrb");
+    const breathText = document.getElementById("breathText");
+    const breathCount = document.getElementById("breathCount");
+
+    const qrSamples = [
+      { code: "HC-SANG-204", type: "Sang total", feed: 100, lives: 1 },
+      { code: "HC-PLASMA-417", type: "Plasma", feed: 100, lives: 2 },
+      { code: "HC-PLAQ-318", type: "Plaquettes", feed: 100, lives: 3 },
+      { code: "HC-GR-126", type: "Globules rouges", feed: 100, lives: 2 }
+    ];
+
+    let currentStream = null;
+    let fakeScanTimer = null;
+    let qrIndex = 0;
+    let totalScans = 0;
+    let totalLives = 0;
+    let waitingPoints = 0;
+    let tapScore = 0;
+    let tapSpawnTimer = null;
+    let tapStopTimer = null;
+    let breathTimer = null;
+    let breathCycles = 0;
+
+    function setLife(percent) {
+      lifeFill.style.width = percent + "%";
+      lifePercent.textContent = percent + "%";
+    }
+
+    function openModal(modal) {
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function showStatus(message) {
+      statusMessage.textContent = message;
+      if (message) {
+        statusMessage.classList.add("visible");
+      } else {
+        statusMessage.classList.remove("visible");
+      }
+    }
+
+    function updateCounters() {
+      saveCount.textContent = totalLives;
+      scanCount.textContent = totalScans;
+      gamePoints.textContent = waitingPoints;
+    }
+
+    function createConfetti() {
+      const colors = ["#ff8fb1", "#ffd36e", "#93e7d8", "#ffb7d5", "#ffffff"];
+
+      for (let index = 0; index < 42; index += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.background = colors[index % colors.length];
+        piece.style.animationDuration = 2.8 + Math.random() * 1.7 + "s";
+        piece.style.animationDelay = Math.random() * 0.35 + "s";
+        piece.style.setProperty("--drift", Math.random() * 180 - 90 + "px");
+        confettiLayer.appendChild(piece);
+      }
+
+      window.setTimeout(() => {
+        confettiLayer.innerHTML = "";
+      }, 4200);
+    }
+
+    function highlightDonationType(type) {
+      donationCards.forEach((card) => {
+        const active = card.dataset.type === type;
+        card.classList.toggle("highlight", active);
+
+        let note = card.querySelector(".detected-note");
+        if (note) {
+          note.remove();
+        }
+
+        if (active) {
+          note = document.createElement("div");
+          note.className = "detected-note";
+          note.textContent = "QR détecté ici";
+          card.appendChild(note);
+        }
+      });
+    }
+
+    function celebrateDonation(sample) {
+      totalScans += 1;
+      totalLives += sample.lives;
+      updateCounters();
+      setLife(sample.feed);
+      detectedChip.textContent = "Dernier don détecté : " + sample.type + " • " + sample.code;
+      showStatus("Merci ! " + sample.type + " détecté, Miaou-Chi est rassasié.");
+      highlightDonationType(sample.type);
+      pet.classList.remove("celebrate");
+      void pet.offsetWidth;
+      pet.classList.add("celebrate");
+      createConfetti();
+    }
+
+    function resetScannerView() {
+      cameraFeed.classList.remove("hidden");
+      cameraFallback.classList.remove("visible");
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("camera_unsupported");
+      }
+
+      return navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" }
+        },
+        audio: false
+      });
+    }
+
+    function stopCamera() {
+      if (fakeScanTimer) {
+        window.clearTimeout(fakeScanTimer);
+        fakeScanTimer = null;
+      }
+
+      if (currentStream) {
+        currentStream.getTracks().forEach((track) => track.stop());
+        currentStream = null;
+      }
+
+      cameraFeed.srcObject = null;
+      resetScannerView();
+    }
+
+    function getNextQrSample() {
+      const sample = qrSamples[qrIndex % qrSamples.length];
+      qrIndex += 1;
+      return sample;
+    }
+
+    function finishScan() {
+      const sample = getNextQrSample();
+      stopCamera();
+      closeModal(scannerModal);
+      scannerStatus.textContent = "";
+      celebrateDonation(sample);
+      scanButton.disabled = false;
+      switchTab("compagnon");
+    }
+
+    function launchFakeScan(message) {
+      resetScannerView();
+      cameraFeed.classList.add("hidden");
+      cameraFallback.classList.add("visible");
+      openModal(scannerModal);
+      scannerStatus.textContent = message;
+
+      fakeScanTimer = window.setTimeout(() => {
+        finishScan();
+      }, 3000);
+    }
+
+    async function handleScanClick() {
+      scanButton.disabled = true;
+      scannerStatus.textContent = "Ouverture de la caméra...";
+      showStatus("");
+      resetScannerView();
+
+      try {
+        currentStream = await startCamera();
+        cameraFeed.srcObject = currentStream;
+        openModal(scannerModal);
+        scannerStatus.textContent = "Lecture du QR code et identification du type de don...";
+
+        fakeScanTimer = window.setTimeout(() => {
+          finishScan();
+        }, 3000);
+      } catch (error) {
+        if (error && error.name === "NotAllowedError") {
+          launchFakeScan("Caméra refusée. Passage en mode démo...");
+        } else if (error && error.name === "NotFoundError") {
+          launchFakeScan("Aucune caméra détectée. Mode démo en cours...");
+        } else {
+          launchFakeScan("Caméra indisponible ici. Simulation du scan...");
+        }
+      }
+    }
+
+    function switchTab(tabName) {
+      tabButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === tabName);
+      });
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("active", panel.id === "panel-" + tabName);
+      });
+    }
+
+    function clearTapTargets() {
+      tapGameArea.innerHTML = "";
+    }
+
+    function spawnTapTarget() {
+      const target = document.createElement("button");
+      target.type = "button";
+      target.className = "tap-target";
+      target.textContent = "♡";
+      target.style.left = Math.random() * 78 + "%";
+      target.style.top = Math.random() * 72 + "%";
+
+      target.addEventListener("click", () => {
+        tapScore += 1;
+        waitingPoints += 1;
+        tapGameScore.textContent = "Score : " + tapScore;
+        updateCounters();
+        target.remove();
+      });
+
+      tapGameArea.appendChild(target);
+      window.setTimeout(() => {
+        target.remove();
+      }, 900);
+    }
+
+    function startTapMiniGame() {
+      if (tapSpawnTimer || tapStopTimer) {
+        return;
+      }
+
+      tapScore = 0;
+      tapGameScore.textContent = "Score : 0";
+      clearTapTargets();
+      startTapGame.disabled = true;
+      startTapGame.textContent = "En cours...";
+
+      spawnTapTarget();
+      tapSpawnTimer = window.setInterval(spawnTapTarget, 520);
+      tapStopTimer = window.setTimeout(() => {
+        window.clearInterval(tapSpawnTimer);
+        tapSpawnTimer = null;
+        tapStopTimer = null;
+        clearTapTargets();
+        startTapGame.disabled = false;
+        startTapGame.textContent = "Relancer";
+        breathText.textContent = "Mini-jeu fini, tu as gagné " + tapScore + " point(s) douceur.";
+      }, 6500);
+    }
+
+    function startBreathMiniGame() {
+      if (breathTimer) {
+        return;
+      }
+
+      const phases = ["Inspire", "Bloque", "Expire"];
+      let phaseIndex = 0;
+      breathCycles = 0;
+      breathCount.textContent = "Cycles : 0";
+      breathText.textContent = "Suis le rythme de Miaou-Chi";
+      startBreathGame.disabled = true;
+      startBreathGame.textContent = "Respire...";
+      breathOrb.textContent = phases[0];
+
+      breathTimer = window.setInterval(() => {
+        phaseIndex = (phaseIndex + 1) % phases.length;
+        breathOrb.textContent = phases[phaseIndex];
+
+        if (phaseIndex === 0) {
+          breathCycles += 1;
+          waitingPoints += 2;
+          breathCount.textContent = "Cycles : " + breathCycles;
+          updateCounters();
+        }
+
+        if (breathCycles >= 3) {
+          window.clearInterval(breathTimer);
+          breathTimer = null;
+          startBreathGame.disabled = false;
+          startBreathGame.textContent = "Recommencer";
+          breathText.textContent = "Bravo, tu as terminé 3 respirations apaisantes.";
+          breathOrb.textContent = "Zen";
+        }
+      }, 1300);
+    }
+
+    helpButton.addEventListener("click", () => openModal(helpModal));
+    closeHelpButton.addEventListener("click", () => closeModal(helpModal));
+    scanButton.addEventListener("click", handleScanClick);
+    startTapGame.addEventListener("click", startTapMiniGame);
+    startBreathGame.addEventListener("click", startBreathMiniGame);
+
+    helpModal.addEventListener("click", (event) => {
+      if (event.target === helpModal) {
+        closeModal(helpModal);
+      }
+    });
+
+    closeScannerButton.addEventListener("click", () => {
+      stopCamera();
+      closeModal(scannerModal);
+      scannerStatus.textContent = "";
+      scanButton.disabled = false;
+    });
+
+    scannerModal.addEventListener("click", (event) => {
+      if (event.target === scannerModal) {
+        stopCamera();
+        closeModal(scannerModal);
+        scannerStatus.textContent = "";
+        scanButton.disabled = false;
+      }
+    });
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        switchTab(button.dataset.tab);
+      });
+    });
+
+    donationCards.forEach((card) => {
+      const plusButton = card.querySelector(".plus-button");
+      plusButton.addEventListener("click", () => {
+        card.classList.toggle("expanded");
+        plusButton.textContent = card.classList.contains("expanded") ? "−" : "+";
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (helpModal.classList.contains("open")) {
+          closeModal(helpModal);
+        }
+
+        if (scannerModal.classList.contains("open")) {
+          stopCamera();
+          closeModal(scannerModal);
+          scannerStatus.textContent = "";
+          scanButton.disabled = false;
+        }
+      }
+    });
+
+    updateCounters();
+    setLife(50);
+  </script>
+</body>
+</html>
