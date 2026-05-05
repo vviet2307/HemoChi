@@ -29,7 +29,8 @@ const dom = {
   startBreathGame: document.getElementById("startBreathGame"),
   breathOrb: document.getElementById("breathOrb"),
   breathText: document.getElementById("breathText"),
-  breathCount: document.getElementById("breathCount")
+  breathCount: document.getElementById("breathCount"),
+  returnPrompt: document.getElementById("returnPrompt")
 };
 
 const QR_SAMPLES = [
@@ -253,6 +254,18 @@ function switchTab(tabName) {
   dom.panels.forEach((panel) => {
     panel.classList.toggle("active", panel.id === "panel-" + tabName);
   });
+
+  updateReturnPrompt();
+}
+
+function updateReturnPrompt() {
+  if (!dom.returnPrompt) {
+    return;
+  }
+
+  const activePanel = dom.panels.find((panel) => panel.classList.contains("active"));
+  const isCompanion = activePanel ? activePanel.id === "panel-compagnon" : true;
+  dom.returnPrompt.classList.toggle("visible", !isCompanion);
 }
 
 function clearTapTargets() {
@@ -363,6 +376,12 @@ dom.menuActions.forEach((button) => {
     }
   });
 });
+
+dom.returnPrompt.addEventListener("click", () => {
+  switchTab("compagnon");
+});
+
+updateReturnPrompt();
 dom.closeHelpButton.addEventListener("click", () => closeModal(dom.helpModal));
 dom.scanButton.addEventListener("click", handleScanClick);
 dom.startTapGame.addEventListener("click", startTapMiniGame);
