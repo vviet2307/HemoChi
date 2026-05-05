@@ -23,30 +23,22 @@
           <div class="brand-badge" aria-hidden="true">🐱</div>
           <div>
             <h1>HemoChi</h1>
-            <p>Le don de sang en version douce</p>
           </div>
         </div>
-        <button class="bubble-button" id="helpButton" type="button">❓ Le don de sang</button>
+        <button class="bubble-button" id="menuButton" type="button" aria-label="Ouvrir le menu">☰</button>
       </header>
-
-      <nav class="tab-bar" aria-label="Menu HemoChi">
-        <button class="tab-button active" type="button" data-tab="compagnon">Compagnon</button>
-        <button class="tab-button" type="button" data-tab="infos">Infos sang</button>
-        <button class="tab-button" type="button" data-tab="jeux">Mini-jeux</button>
-        <button class="tab-button" type="button" data-tab="dons">Dons +</button>
-      </nav>
 
       <div class="content">
         <section class="panel active" id="panel-compagnon">
           <article class="hero-card">
             <div class="hero-stack">
               <div class="life-bar-card">
-                <div class="life-bar-label">
-                  <span>Énergie de HemoChi</span>
-                  <span id="lifePercent">50%</span>
-                </div>
-                <div class="life-track" aria-label="Barre d'énergie">
-                  <div class="life-fill" id="lifeFill"></div>
+                <div class="heart-meter" id="heartMeter" aria-label="Coeurs de vie">
+                  <span class="heart-icon filled">💖</span>
+                  <span class="heart-icon filled">💖</span>
+                  <span class="heart-icon">💖</span>
+                  <span class="heart-icon">💖</span>
+                  <span class="heart-icon">💖</span>
                 </div>
               </div>
 
@@ -97,13 +89,6 @@
             </div>
           </article>
 
-          <article class="info-card">
-            <div class="section-heading">
-              <h3>Pourquoi c'est rassurant</h3>
-              <span>version anti-stress</span>
-            </div>
-            <p>Le parcours est guidé pas à pas. Tu arrives, on vérifie que tout va bien, tu t'installes, tu donnes, puis tu prends une pause gourmande. HemoChi transforme ce moment en rituel doux et positif.</p>
-          </article>
         </section>
 
         <section class="panel" id="panel-infos">
@@ -274,6 +259,29 @@
       </div>
     </div>
   </main>
+
+  <section class="modal" id="menuModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <div class="modal-header">
+        <h2 id="menuTitle">Menu</h2>
+        <button class="close-button" id="closeMenuButton" type="button">Fermer</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-action" type="button" data-menu="jeux">
+          <strong>Mini-jeux d'attente</strong>
+          <span>Des petites activités calmes et pop pour patienter avec Miaou-Chi.</span>
+        </button>
+        <button class="menu-action" type="button" data-menu="dons">
+          <strong>La démarche</strong>
+          <span>Le déroulé du don, les types reconnus et combien de coeurs chacun apporte.</span>
+        </button>
+        <button class="menu-action" type="button" data-menu="help">
+          <strong>Le don de sang</strong>
+          <span>Une explication simple et rassurante du parcours au centre.</span>
+        </button>
+      </div>
+    </div>
+  </section>
 
   <section class="modal" id="helpModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">

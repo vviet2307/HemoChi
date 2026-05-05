@@ -157,7 +157,8 @@ button {
 .primary-button,
 .close-button,
 .plus-button,
-.game-button {
+.game-button,
+.menu-action {
   border: 0;
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
@@ -283,6 +284,25 @@ button {
   background: #ffe0ea;
   overflow: hidden;
   box-shadow: inset 0 2px 6px rgba(198, 101, 139, 0.15);
+}
+
+.heart-meter {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1.05rem;
+  padding: 0.25rem 0 0.1rem;
+}
+
+.heart-icon {
+  opacity: 0.35;
+  filter: grayscale(0.2);
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.heart-icon.filled {
+  opacity: 1;
+  transform: translateY(-1px) scale(1.05);
 }
 
 .life-fill {
@@ -780,6 +800,45 @@ button {
 .scanner-card h2 {
   margin: 0 0 0.75rem;
   font-size: 1.25rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.menu-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.menu-action {
+  width: 100%;
+  text-align: left;
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-main);
+  box-shadow: 0 12px 24px rgba(255, 132, 174, 0.12);
+}
+
+.menu-action strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.menu-action span {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.45;
 }
 
 .help-steps {

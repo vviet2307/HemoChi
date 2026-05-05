@@ -1,5 +1,8 @@
 const dom = {
-  helpButton: document.getElementById("helpButton"),
+  menuButton: document.getElementById("menuButton"),
+  menuModal: document.getElementById("menuModal"),
+  closeMenuButton: document.getElementById("closeMenuButton"),
+  menuActions: Array.from(document.querySelectorAll(".menu-action")),
   helpModal: document.getElementById("helpModal"),
   closeHelpButton: document.getElementById("closeHelpButton"),
   tabButtons: Array.from(document.querySelectorAll(".tab-button")),
@@ -10,8 +13,8 @@ const dom = {
   cameraFeed: document.getElementById("cameraFeed"),
   cameraFallback: document.getElementById("cameraFallback"),
   scannerStatus: document.getElementById("scannerStatus"),
-  lifeFill: document.getElementById("lifeFill"),
-  lifePercent: document.getElementById("lifePercent"),
+  heartMeter: document.getElementById("heartMeter"),
+  lifeCount: document.getElementById("lifeCount"),
   pet: document.getElementById("pet"),
   statusMessage: document.getElementById("statusMessage"),
   confettiLayer: document.getElementById("confettiLayer"),
@@ -30,11 +33,13 @@ const dom = {
 };
 
 const QR_SAMPLES = [
-  { code: "HC-SANG-204", type: "Sang total", feed: 100, lives: 1 },
-  { code: "HC-PLASMA-417", type: "Plasma", feed: 100, lives: 2 },
-  { code: "HC-PLAQ-318", type: "Plaquettes", feed: 100, lives: 3 },
-  { code: "HC-GR-126", type: "Globules rouges", feed: 100, lives: 2 }
+  { code: "HC-SANG-204", type: "Sang total", hearts: 1, lives: 1 },
+  { code: "HC-PLASMA-417", type: "Plasma", hearts: 2, lives: 2 },
+  { code: "HC-PLAQ-318", type: "Plaquettes", hearts: 3, lives: 3 },
+  { code: "HC-GR-126", type: "Globules rouges", hearts: 2, lives: 2 }
 ];
+
+const MAX_HEARTS = 5;
 
 const state = {
   currentStream: null,
@@ -47,7 +52,8 @@ const state = {
   tapSpawnTimer: null,
   tapStopTimer: null,
   breathTimer: null,
-  breathCycles: 0
+  breathCycles: 0,
+  hearts: 2
 };
 
 const TAP_SPAWN_RATE = 520;
@@ -57,9 +63,15 @@ const BREATH_INTERVAL = 1300;
 const SCAN_SIMULATION_DELAY = 3000;
 const CONFETTI_COUNT = 42;
 
-function setLife(percent) {
-  dom.lifeFill.style.width = percent + "%";
-  dom.lifePercent.textContent = percent + "%";
+function setHearts(value) {
+  const clamped = Math.min(MAX_HEARTS, Math.max(0, value));
+  state.hearts = clamped;
+  dom.lifeCount.textContent = clamped + " / " + MAX_HEARTS;
+
+  const icons = Array.from(dom.heartMeter.querySelectorAll(".heart-icon"));
+  icons.forEach((icon, index) => {
+    icon.classList.toggle("filled", index < clamped);
+  });
 }
 
 function openModal(modal) {
@@ -132,7 +144,7 @@ function celebrateDonation(sample) {
   state.totalScans += 1;
   state.totalLives += sample.lives;
   updateCounters();
-  setLife(sample.feed);
+  setHearts(state.hearts + sample.hearts);
   dom.detectedChip.textContent = "Dernier don détecté : " + sample.type + " • " + sample.code;
   showStatus("Merci ! " + sample.type + " détecté, Miaou-Chi est rassasié.");
   highlightDonationType(sample.type);
@@ -329,7 +341,28 @@ function startBreathMiniGame() {
   }, BREATH_INTERVAL);
 }
 
-dom.helpButton.addEventListener("click", () => openModal(dom.helpModal));
+dom.menuButton.addEventListener("click", () => openModal(dom.menuModal));
+dom.closeMenuButton.addEventListener("click", () => closeModal(dom.menuModal));
+dom.menuModal.addEventListener("click", (event) => {
+  if (event.target === dom.menuModal) {
+    closeModal(dom.menuModal);
+  }
+});
+dom.menuActions.forEach((button) => {
+  button.addEventListener("click", () => {
+    const target = button.dataset.menu;
+    closeModal(dom.menuModal);
+
+    if (target === "help") {
+      openModal(dom.helpModal);
+      return;
+    }
+
+    if (target) {
+      switchTab(target);
+    }
+  });
+});
 dom.closeHelpButton.addEventListener("click", () => closeModal(dom.helpModal));
 dom.scanButton.addEventListener("click", handleScanClick);
 dom.startTapGame.addEventListener("click", startTapMiniGame);
